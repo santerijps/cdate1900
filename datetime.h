@@ -23,7 +23,7 @@
   /*
   Checks if the provided year is a leap year.
   */
-  inline char dt_is_leap_year(unsigned short year) {
+  char dt_is_leap_year(unsigned short year) {
     if (year % 4 == 0) {
       if (year % 100 == 0) {
         return year % 400 == 0;
@@ -33,7 +33,7 @@
     return 0;
   }
 
-  inline int* __dt_get_months(unsigned short year) {
+  int* __dt_get_months(unsigned short year) {
     return dt_is_leap_year(year) ? __dt_LeapYearMonths : __dt_CommonYearMonths;
   }
 
@@ -127,6 +127,76 @@
 
     size_t day_total = seconds / DT_DAY;
     int *months = __dt_get_months(DT_EPOCH_YEAR);
+
+    while (day_total--) {
+      dt.day += 1;
+      if (dt.day == months[dt.month - 1] + 1) {
+        dt.day = 1;
+        dt.month += 1;
+        if (dt.month == 13) {
+          dt.month = 1;
+          dt.year += 1;
+          months = __dt_get_months(dt.year);
+        }
+      }
+    }
+
+    return dt;
+  }
+
+  /*
+  Add seconds to a datetime. Returns a new datetime instance.
+  */
+  struct datetime dt_datetime_add_seconds(struct datetime *d, size_t seconds) {
+
+    struct datetime dt;
+    dt.year = d->year;
+    dt.month = d->month;
+    dt.day = d->day;
+    dt.hour = d->hour;
+    dt.minute = d->minute;
+    dt.second = d->second;
+
+    size_t day_total = seconds / DT_DAY;
+    size_t second_total = seconds % DT_DAY;
+    int *months = __dt_get_months(dt.year);
+
+    size_t hour = second_total / DT_HOUR;
+    size_t minute = (second_total - hour * DT_HOUR) / DT_MINUTE;
+    size_t second = second_total - (hour * DT_HOUR) - (minute * DT_MINUTE);
+
+    dt.hour += hour;
+    dt.minute += minute;
+    dt.second += second;
+
+    while (day_total--) {
+      dt.day += 1;
+      if (dt.day == months[dt.month - 1] + 1) {
+        dt.day = 1;
+        dt.month += 1;
+        if (dt.month == 13) {
+          dt.month = 1;
+          dt.year += 1;
+          months = __dt_get_months(dt.year);
+        }
+      }
+    }
+
+    return dt;
+  }
+
+  /*
+  Add seconds to a datetime. Returns a new datetime instance.
+  */
+  struct date dt_date_add_seconds(struct datetime *d, size_t seconds) {
+
+    struct date dt;
+    dt.year = d->year;
+    dt.month = d->month;
+    dt.day = d->day;
+
+    size_t day_total = seconds / DT_DAY;
+    int *months = __dt_get_months(dt.year);
 
     while (day_total--) {
       dt.day += 1;
